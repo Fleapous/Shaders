@@ -5,9 +5,12 @@ Shader "HeightMap/HeightMapShader"
         _MainTex ("Texture", 2D) = "white" {}
         _MaxCol ("MaxColor", Color) = (1, 1, 1, 1)
         _MinCol ("MinColor", Color) = (1, 1, 1, 1)
-        
         _Scale("scale", Range(0.001, 1000)) = 1
         _SlopeIntensity("SlopeIntensity", Range(0.1, 10)) = 1
+        _HeightScalar("HeightScalar", Range(0.1, 100)) = 1
+        _Lacunarity("Lacunarity", Range(0.01, 10)) = 1
+        _Persistence("persistence", Range(0.01, 10)) = 1
+        _Octaves("Octaves", Range(1, 10)) = 1
     }
     SubShader
     {
@@ -48,16 +51,30 @@ Shader "HeightMap/HeightMapShader"
             float4 _MainTex_ST;
             float _Scale;
             float _SlopeIntensity;
+            float _HeightScalar;
+            float _Lacunarity;
+            float _Persistence;
+            float _Octaves;
 
             float sinMap(float4 pos)
             {
                 return sin(pos.x);
             }
 
-            float PerlinNoise(float4 pos, float scale)
+            float PerlinNoise(float4 pos)
             {
-                float noise = snoise(float2(pos.x * scale, pos.z * scale));
-                return (noise + 1)/2;
+                //float noise = (snoise(float2(pos.x * scale, pos.z * scale)) * 2) - 1;
+                float amplitude = 1;
+                float frequency = 1;
+                float noiseHeight = 0;
+                for(int i = 0; i < _Octaves; i++)
+                {
+                    float perlinNum = snoise(float2(pos.x / _Scale * frequency, pos.z / _Scale * frequency)) * 2 - 1;
+                    noiseHeight += perlinNum * amplitude;
+                    amplitude *= _Persistence;
+                    frequency *= _Lacunarity;
+                }
+                return noiseHeight; 
             }
 
             float CalculateSlope(float3 normal)
@@ -70,8 +87,7 @@ Shader "HeightMap/HeightMapShader"
             {
                 v2f o;
                 v.worldPos = mul(unity_ObjectToWorld, v.vertex);
-                _Scale = 1/_Scale;
-                float height = PerlinNoise(v.worldPos, _Scale);
+                float height = PerlinNoise(v.worldPos);
                 v.vertex.y += height;
 
                 //recalculate normal  after changing the hieght
