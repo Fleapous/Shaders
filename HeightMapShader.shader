@@ -3,11 +3,15 @@ Shader "HeightMap/HeightMapShader"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _MaxCol ("MaxColor", Color) = (1, 1, 1, 1)
-        _MinCol ("MinColor", Color) = (1, 1, 1, 1)
+        _GroundCol ("Ground color", Color) = (1, 1, 1, 1)
+        _EdgeCol ("Edge Color", Color) = (1, 1, 1, 1)
+        _CliffCol("cliff color", Color) = (1,1,1,1)
         _Scale("scale", Range(0.001, 1000)) = 1
-        _SlopeIntensity("SlopeIntensity", Range(0.1, 10)) = 1
-        _HeightScalar("HeightScalar", Range(0.1, 100)) = 1
+        _SlopeOffset("slope offset", Range(0, 1)) = 0
+        _SlopeIntensity("SlopeIntensity", Range(0, 1)) = 1
+        _lightFilterMax("lightFilterMax", float) = 1
+        _lightFilterMin("lightFilterMin", float) = 1
+        _HeightScalar("HeightScalar", Range(0.01, 100)) = 1
         _Lacunarity("Lacunarity", Range(0.01, 10)) = 1
         _Persistence("persistence", Range(0.01, 10)) = 1
         _Octaves("Octaves", Range(1, 10)) = 1
@@ -46,8 +50,12 @@ Shader "HeightMap/HeightMapShader"
             };
 
             sampler2D _MainTex;
-            float4 _MaxCol;
-            float4 _MinCol;
+            float4 _GroundCol;
+            float4 _EdgeCol;
+            float4 _CliffCol;
+            float _SlopeOffset;
+            float _lightFilterMax;
+            float _lightFilterMin;
             float4 _MainTex_ST;
             float _Scale;
             float _SlopeIntensity;
@@ -80,7 +88,28 @@ Shader "HeightMap/HeightMapShader"
             float CalculateSlope(float3 normal)
             {
                 float dotProd = dot(normal, float3(0, 1, 0));
-                return acos(dotProd);
+                return acos(dotProd) / 3.14159;
+            }
+
+            float4 CalculateColor(float deg)
+            {
+                if(deg > _SlopeIntensity + _SlopeOffset)
+                        return _GroundCol;
+                if(deg > _SlopeIntensity)
+                    return _EdgeCol;
+                return _CliffCol;
+            }
+
+            float LambertToon(float3 lightDir, float normal)
+            {
+                
+                float lambertToon = max(0,dot(normal, lightDir));
+                //return lambertToon;
+                if(lambertToon > _lightFilterMax)
+                    return 0.2;
+                if(lambertToon < _lightFilterMin)
+                    return 0.8;
+                return 1;
             }
 
             v2f vert (appdata v)
@@ -88,7 +117,7 @@ Shader "HeightMap/HeightMapShader"
                 v2f o;
                 v.worldPos = mul(unity_ObjectToWorld, v.vertex);
                 float height = PerlinNoise(v.worldPos);
-                v.vertex.y += height;
+                v.vertex.y += height * _HeightScalar;
 
                 //recalculate normal  after changing the hieght
                 v.normal = normalize(float3(v.normal.x + height, v.normal.y, v.normal.z));
@@ -106,12 +135,8 @@ Shader "HeightMap/HeightMapShader"
             {
                 // Calculate Lambertian lighting
                 float3 lightDir = normalize(_WorldSpaceLightPos0.xyz - i.worldPos);
-                float lambert = max(0, dot(i.normal, lightDir));
-                
                 float angle = CalculateSlope(i.normal);
-                angle *= _SlopeIntensity;
-                float3 color = lerp(_MaxCol.rgb, _MinCol.rgb, angle/3.14159);
-                return float4(color, 1) * lambert;
+                return float4(CalculateColor(angle).rgb, 1) * LambertToon(lightDir, i.normal);
             }
             ENDCG
         }
