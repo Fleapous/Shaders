@@ -29,6 +29,8 @@ Shader "HeightMap/HeightMapShader"
         Pass
         {
             CGPROGRAM
+// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
+#pragma exclude_renderers gles
             #pragma vertex vert
             #pragma fragment frag
 
@@ -108,24 +110,29 @@ Shader "HeightMap/HeightMapShader"
                 return interpolatedColor;
             }
             
-            float4 getneighborHeights(float4 worldPos, float height)
+            float4x2 getneighborHeights(float4 worldPos, float height)
             {
                 float offset = _SlopeOffset;
                 float4 heightDiffs;
+                float4 heights;
 
                 float bot = PerlinNoise(float4(worldPos.x, worldPos.y, worldPos.z - offset, worldPos.a));
                 heightDiffs.x = abs(bot - height);
+                heights.x = bot;
 
                 float top = PerlinNoise(float4(worldPos.x, worldPos.y, worldPos.z + offset, worldPos.a));
                 heightDiffs.y = abs(top - height);
+                heights.y = top;
 
                 float right = PerlinNoise(float4(worldPos.x + offset, worldPos.y, worldPos.z, worldPos.a));
                 heightDiffs.z = abs(right - height);
+                heights.z = right;
 
                 float left = PerlinNoise(float4(worldPos.x - offset, worldPos.y, worldPos.z, worldPos.a));
                 heightDiffs.w = abs(left - height);
+                heights.w = left;
 
-                return heightDiffs;
+                return float4x2(heightDiffs, heights);
             }
 
             float getMaxDiff(float4 heightDiffs)
@@ -135,35 +142,33 @@ Shader "HeightMap/HeightMapShader"
             }
 
 
-            float3 getNormal(float3 normal, float4 vertex, float height, float4 heightDiff)
+            float3 computeNormals( float h_A, float h_B, float h_C, float h_D, float h_N, float heightScale )
             {
-                // Calculate normal for the modified position
-                float3 modifiedNormal = normalize(float3(normal.x, normal.y + height, normal.z));
-                
-                // Calculate neighboring heights and normals
-                float3 botPos = vertex - float4(0, heightDiff.x, 0, 0);
-                float3 topPos = vertex + float4(0, heightDiff.y, 0, 0);
-                float3 rightPos = vertex + float4(heightDiff.z, 0, 0, 0);
-                float3 leftPos = vertex - float4(heightDiff.w, 0, 0, 0);
-                
-                float3 botNormal = normalize(float3(normal.x, normal.y + PerlinNoise(float4(botPos.x, botPos.y, botPos.z, 0)), normal.z));
-                float3 topNormal = normalize(float3(normal.x, normal.y + PerlinNoise(float4(topPos.x, topPos.y, topPos.z, 0)), normal.z));
-                float3 rightNormal = normalize(float3(normal.x + PerlinNoise(float4(rightPos.x, rightPos.y, rightPos.z, 0)), normal.y, normal.z));
-                float3 leftNormal = normalize(float3(normal.x + PerlinNoise(float4(leftPos.x, leftPos.y, leftPos.z, 0)), normal.y, normal.z));
-                
-                // Interpolate normals based on height differences
-                float tBot = pow(saturate(heightDiff.x / _SlopeIntensity), _ColorSharpness);
-                float tTop = pow(saturate(heightDiff.y / _SlopeIntensity), _ColorSharpness);
-                float tRight = pow(saturate(heightDiff.z / _SlopeIntensity), _ColorSharpness);
-                float tLeft = pow(saturate(heightDiff.w / _SlopeIntensity), _ColorSharpness);
-                
-                float3 interpolatedNormal = normalize(
-                    lerp(modifiedNormal, botNormal, tBot) +
-                    lerp(modifiedNormal, topNormal, tTop) +
-                    lerp(modifiedNormal, rightNormal, tRight) +
-                    lerp(modifiedNormal, leftNormal, tLeft)
-                );
-                return  interpolatedNormal;
+                //To make it easier we offset the points such that n is "0" height
+                float3 va = { 0, 1, (h_A - h_N)*heightScale };
+                float3 vb = { 1, 0, (h_B - h_N)*heightScale };
+                float3 vc = { 0, -1, (h_C - h_N)*heightScale };
+                float3 vd = { -1, 0, (h_D - h_N)*heightScale };
+                //cross products of each vector yields the normal of each tri - return the average normal of all 4 tris
+                float3 average_n = ( cross(va, vb) + cross(vb, vc) + cross(vc, vd) + cross(vd, va) ) / -4;
+                return normalize( average_n );
+            }
+
+            float lambertToon(float angle)
+            {
+                if(step(0.3, angle) == 1)
+                {
+                    if(step(0.7, angle) == 1)
+                        return 0.7;
+                    else
+                    {
+                        return 0.6;
+                    }
+                }
+                else
+                {
+                    return 0.2;
+                }
             }
 
             v2f vert (appdata v)
@@ -177,18 +182,21 @@ Shader "HeightMap/HeightMapShader"
                 modifiedPos.y += height; //modified vertex location
                 
                 //calculating color
-                float4 heightDiff = getneighborHeights(v.worldPos, height); //find the highest diff amongst neighboring heights
-                float4 calculatedCol = CalculateColor(getMaxDiff(heightDiff));
+                float4x2 neighborSampling = getneighborHeights(v.worldPos, height);
+                float4 heightDiff = float4(neighborSampling._11, neighborSampling._21, neighborSampling._31, neighborSampling._41);
+                float4 heights = float4(neighborSampling._12, neighborSampling._22, neighborSampling._32, neighborSampling._42);
+                float colorHeightDiff = getMaxDiff(heightDiff); // Calculate the height difference for color blending
+                float4 calculatedCol = CalculateColor(heightDiff);
                 
                 //calculating normals
-                float3 modifiedNormal = getNormal(v.normal, v.vertex, height, heightDiff);
+                float3 modifiedNormal = computeNormals(heights.y, heights.z, heights.x, heights.w, modifiedPos.y, 10);
                 o.normal = modifiedNormal;
 
                 //lambertLighting
                 float3 lightDir = _WorldSpaceLightPos0.xyz - v.worldPos.xyz;
                 float3 normalizedLightDir = normalize(lightDir);
-                float lambert = max(0, dot(modifiedNormal, normalizedLightDir));
-                o.col.rgb = calculatedCol * (1-lambert);
+                float lambert = lambertToon(max(0, dot(modifiedNormal, normalizedLightDir)));
+                o.col = calculatedCol * (1-lambert);
                 
                 o.pos = UnityObjectToClipPos(modifiedPos);
                 return o;
@@ -197,7 +205,7 @@ Shader "HeightMap/HeightMapShader"
             fixed4 frag (v2f i) : SV_Target
             {
                 return i.col;
-                //return float4(i.normal, 1);
+                return float4(i.normal, 1);
             }
             ENDCG
         }
