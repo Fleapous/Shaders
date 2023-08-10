@@ -15,8 +15,9 @@ Shader "HeightMap/HeightMapShader"
         _lightFilterMax("lightFilterMax", float) = 1
         _lightFilterMin("lightFilterMin", float) = 1
         
-        //heightmap settins
-        _Scale("scale", Range(0.001, 1000)) = 1
+        //heightmap settings
+        _Animate ("animate map. 1 true 0 false", int) = 0
+        _Scale("scale", float) = 1
         _HeightScalar("HeightScalar", Range(0.01, 100)) = 1
         _Lacunarity("Lacunarity", Range(0.01, 10)) = 1
         _Persistence("persistence", Range(0.01, 10)) = 1
@@ -29,8 +30,7 @@ Shader "HeightMap/HeightMapShader"
         Pass
         {
             CGPROGRAM
-// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
-#pragma exclude_renderers gles
+            #pragma exclude_renderers gles
             #pragma vertex vert
             #pragma fragment frag
 
@@ -50,7 +50,7 @@ Shader "HeightMap/HeightMapShader"
             struct v2f
             {
                 float4 pos : SV_POSITION;
-                float3 normal : TEXCOORD1; // Pass the modified normal to fragment shader
+                float3 normal : TEXCOORD1;
                 float4 col : COLOR;
             };
 
@@ -63,6 +63,7 @@ Shader "HeightMap/HeightMapShader"
             float _lightFilterMax;
             float _lightFilterMin;
             float4 _MainTex_ST;
+            int _Animate;
             float _Scale;
             float _SlopeIntensity;
             float _HeightScalar;
@@ -82,17 +83,26 @@ Shader "HeightMap/HeightMapShader"
             float PerlinNoise(float4 pos)
             {
                 //float noise = (snoise(float2(pos.x * scale, pos.z * scale)) * 2) - 1;
+                float animation;
+                if(_Animate == 1)
+                {
+                    animation = _Time.y * 500;
+                }
+                else
+                {
+                    animation = 0;
+                }
                 float amplitude = 1;
                 float frequency = 1;
                 float noiseHeight = 0;
                 for(int i = 0; i < _Octaves; i++)
                 {
-                    float perlinNum = snoise(float2(pos.x / _Scale * frequency, pos.z / _Scale * frequency)) * 2 - 1;
+                    float perlinNum = snoise(float2(pos.x / _Scale * frequency, (pos.z + animation) / _Scale * frequency)) * 2 - 1;
                     noiseHeight += perlinNum * amplitude;
                     amplitude *= _Persistence;
                     frequency *= _Lacunarity;
                 }
-                return noiseHeight * _HeightScalar + 600; 
+                return noiseHeight * _HeightScalar; 
             }
 
             float CalculateSlope(float3 normal)
@@ -101,8 +111,10 @@ Shader "HeightMap/HeightMapShader"
                 return acos(dotProd) / 3.14159;
             }
 
-            float4 CalculateColor(float heightDiff)
+            float4 CalculateColor(float heightDiff, float height)
             {
+                if(height == _lightFilterMin)
+                    return _EdgeCol;
                 float t = pow(saturate(heightDiff / _SlopeIntensity), _ColorSharpness);
                 
                 float4 interpolatedColor = lerp(_GroundCol, _CliffCol, t);
@@ -117,18 +129,26 @@ Shader "HeightMap/HeightMapShader"
                 float4 heights;
 
                 float bot = PerlinNoise(float4(worldPos.x, worldPos.y, worldPos.z - offset, worldPos.a));
+                if(bot <= _lightFilterMin)
+                    bot = _lightFilterMin;
                 heightDiffs.x = abs(bot - height);
                 heights.x = bot;
 
                 float top = PerlinNoise(float4(worldPos.x, worldPos.y, worldPos.z + offset, worldPos.a));
+                if(top <= _lightFilterMin)
+                    top = _lightFilterMin;
                 heightDiffs.y = abs(top - height);
                 heights.y = top;
 
                 float right = PerlinNoise(float4(worldPos.x + offset, worldPos.y, worldPos.z, worldPos.a));
+                if(right <= _lightFilterMin)
+                    right = _lightFilterMin;
                 heightDiffs.z = abs(right - height);
                 heights.z = right;
 
                 float left = PerlinNoise(float4(worldPos.x - offset, worldPos.y, worldPos.z, worldPos.a));
+                if(left <= _lightFilterMin)
+                    left = _lightFilterMin;
                 heightDiffs.w = abs(left - height);
                 heights.w = left;
 
@@ -141,7 +161,7 @@ Shader "HeightMap/HeightMapShader"
                 return maxDiff;
             }
 
-
+            //https://forum.unity.com/threads/calculate-vertex-normals-in-shader-from-heightmap.169871/
             float3 computeNormals( float h_A, float h_B, float h_C, float h_D, float h_N, float heightScale )
             {
                 //To make it easier we offset the points such that n is "0" height
@@ -179,26 +199,41 @@ Shader "HeightMap/HeightMapShader"
                 v.worldPos = mul(unity_ObjectToWorld, v.vertex);
                 float4 modifiedPos = v.vertex;
                 float height = PerlinNoise(v.worldPos);
-                modifiedPos.y += height; //modified vertex location
+                if(modifiedPos.y + height <= _lightFilterMin)
+                {
+                    height = _lightFilterMin;
+                    modifiedPos.y += height;
+                }
+                else
+                {
+                    modifiedPos.y += height; //modified vertex location
+                }
+                
                 
                 //calculating color
                 float4x2 neighborSampling = getneighborHeights(v.worldPos, height);
                 float4 heightDiff = float4(neighborSampling._11, neighborSampling._21, neighborSampling._31, neighborSampling._41);
                 float4 heights = float4(neighborSampling._12, neighborSampling._22, neighborSampling._32, neighborSampling._42);
-                float colorHeightDiff = getMaxDiff(heightDiff); // Calculate the height difference for color blending
-                float4 calculatedCol = CalculateColor(heightDiff);
+                float4 calculatedCol = CalculateColor(heightDiff, height);
                 
                 //calculating normals
                 float3 modifiedNormal = computeNormals(heights.y, heights.z, heights.x, heights.w, modifiedPos.y, 10);
                 o.normal = modifiedNormal;
-
-                //lambertLighting
-                float3 lightDir = _WorldSpaceLightPos0.xyz - v.worldPos.xyz;
-                float3 normalizedLightDir = normalize(lightDir);
-                float lambert = lambertToon(max(0, dot(modifiedNormal, normalizedLightDir)));
-                o.col = calculatedCol * (1-lambert);
                 
+                //lambertLighting
+                float3 normalizedLightDir = _WorldSpaceLightPos0.xyz;
+                float lambert = lambertToon(max(0, dot(modifiedNormal, normalizedLightDir)));
+
+                //visualization for adding a proper wave shader later. messing up the shadows 
+                if(modifiedPos.y < _lightFilterMin)
+                {
+                    modifiedPos.y = _lightFilterMin;
+                    calculatedCol = _EdgeCol;
+                }
+                
+                o.col = calculatedCol * (1-lambert);
                 o.pos = UnityObjectToClipPos(modifiedPos);
+                //o.col = float4(normalizedLightDir, 1);
                 return o;
             }
 
