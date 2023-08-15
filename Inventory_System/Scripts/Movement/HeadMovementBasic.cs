@@ -9,14 +9,26 @@ public class HeadMovementBasic : MonoBehaviour
 
     private float rotationX = 0;
 
+    [System.NonSerialized] public bool InventoryLock;
+    
     void Start()
     {
+        InventoryLock = false;
         Cursor.lockState = CursorLockMode.Locked; // Lock the cursor to the center of the screen
     }
 
     void Update()
     {
-        MoveHead();
+        if(!InventoryLock)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            MoveHead();
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = true;
+        }
     }
 
     private void MoveHead()

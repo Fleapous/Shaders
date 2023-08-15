@@ -1,3 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="Row" style="flex-grow: 0; width: 40%; height: 50%; flex-direction: row; flex-wrap: wrap;" />
+    <ui:VisualElement style="flex-grow: 1; align-self: auto; flex-direction: row;">
+        <ui:VisualElement name="RowL" style="flex-grow: 0; width: 40%; height: 50%; flex-direction: row; flex-wrap: wrap;" />
+        <ui:VisualElement name="RowR" style="flex-grow: 0; width: 40%; height: 50%; flex-direction: row; flex-wrap: wrap; align-self: auto; justify-content: flex-start; align-items: stretch; display: flex; left: 20%;" />
+    </ui:VisualElement>
 </ui:UXML>
