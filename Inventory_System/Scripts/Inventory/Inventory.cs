@@ -11,18 +11,19 @@ public class Inventory : MonoBehaviour
 {
     public List<Item> items;
     
-    public void ShowItems(UIDocument uiInv, VisualTreeAsset template)
+    public void ShowItems(UIDocument uiInv, VisualTreeAsset template, string uiContainer)
     {
         foreach (var item in items)
         {
             TemplateContainer container = AddItemToUI(template, item);
-            uiInv.rootVisualElement.Q("Row").Add(container);
+            //uiInv.rootVisualElement.Add(container);
+            uiInv.rootVisualElement.Q<VisualElement>(uiContainer).Add(container);
         }
     }
 
-    public void HideItems(UIDocument uiInv)
+    public void HideItems(UIDocument uiInv, string uiContainer)
     {
-        uiInv.rootVisualElement.Q("Row").Clear();
+        uiInv.rootVisualElement.Q(uiContainer).Clear();
     }
 
     private TemplateContainer AddItemToUI(VisualTreeAsset template, Item item)
