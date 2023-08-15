@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,14 @@ using UnityEngine.UIElements;
 
 public class ToggleInventory : MonoBehaviour
 {
-    public Inventory_Manager UI;
-    
+    public VisualTreeAsset ItemTemplate;
+    public UIDocument InventoryUI;
+    private Inventory _inventory;
+    private void Start()
+    {
+        _inventory = GetComponent<Inventory>();
+    }
+
     private void Update()
     {
         // Check for key press
@@ -18,6 +25,14 @@ public class ToggleInventory : MonoBehaviour
 
     private void UIEnableDisable()
     {
-        UI.uiInventory.rootVisualElement.visible = !UI.uiInventory.rootVisualElement.visible;
+        InventoryUI.rootVisualElement.visible = !InventoryUI.rootVisualElement.visible;
+        if (InventoryUI.rootVisualElement.visible)
+        {
+            _inventory.ShowItems(InventoryUI, ItemTemplate);
+        }
+        else
+        {
+            _inventory.HideItems(InventoryUI);
+        }
     }
 }

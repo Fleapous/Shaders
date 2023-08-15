@@ -1,3 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 100px; height: 100px;" />
+    <ui:GroupBox name="GroupBox" style="align-items: flex-start; align-self: flex-start; width: 100px; height: 100px; padding-left: 0; padding-top: 0; padding-bottom: 5px;">
+        <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="Button" style="width: 100px; height: 100px;" />
+        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="align-self: center;" />
+    </ui:GroupBox>
 </ui:UXML>
