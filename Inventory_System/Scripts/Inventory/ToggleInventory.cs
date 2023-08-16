@@ -27,12 +27,13 @@ public class ToggleInventory : MonoBehaviour
 
         InventoryUI.rootVisualElement.Q("RowL").visible = false;
         InventoryUI.rootVisualElement.Q("RowR").visible = false;
+        
     }
 
     private void Update()
     {
         // bring up player inventory
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && !_otherMenuOpen)
         {
             _inventoryMenuOpen = !_inventoryMenuOpen;
             UIEnableDisable(InventoryUI, _inventory, "RowL");
@@ -45,13 +46,11 @@ public class ToggleInventory : MonoBehaviour
             {
                 _otherMenuOpen = !_otherMenuOpen;
                 UIEnableDisable(InventoryUI, inv, "RowR");
+                UIEnableDisable(InventoryUI, _inventory, "RowL");
             }
         }
-
-        // Determine if any menu is open
+        
         bool anyMenuOpen = _inventoryMenuOpen || _otherMenuOpen;
-
-        // Set InventoryLock based on menu state
         _headMovementBasic.InventoryLock = anyMenuOpen;
     }
 

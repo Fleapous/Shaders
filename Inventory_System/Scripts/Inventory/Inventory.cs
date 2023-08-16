@@ -16,8 +16,12 @@ public class Inventory : MonoBehaviour
         foreach (var item in items)
         {
             TemplateContainer container = AddItemToUI(template, item);
-            //uiInv.rootVisualElement.Add(container);
             uiInv.rootVisualElement.Q<VisualElement>(uiContainer).Add(container);
+        }
+        
+        if (uiContainer == "RowR")
+        {
+            
         }
     }
 
@@ -29,15 +33,44 @@ public class Inventory : MonoBehaviour
     private TemplateContainer AddItemToUI(VisualTreeAsset template, Item item)
     {
         var container = template.Instantiate();
-        container.Q<Button>("Button").style.backgroundImage = new StyleBackground(item.ItemSprite);
-        container.Q<Label>("Label").text = item.name;
+        var borderCol = GetColorForEnum(item.rarity);
+        var button = container.Q<Button>("Button");
+        button.style.backgroundImage = new StyleBackground(item.ItemSprite);
+        button.style.borderBottomColor = borderCol;
+        button.style.borderLeftColor = borderCol;
+        button.style.borderRightColor = borderCol;
+        button.style.borderTopColor = borderCol;
+        button.clicked += () => OnButtonClick(item);
+        
+        container.Q<Label>("Name").text = item.name;
+        container.Q<Label>("Quantity").text = item.quantity.ToString();
         
         return container;
+    }
+    
+    private static Color GetColorForEnum(Rarity enumValue)
+    {
+        switch (enumValue)
+        {
+            case Rarity.Common:
+                return Color.green;
+            case Rarity.Rare:
+                return Color.blue;
+            case Rarity.Legendary:
+                return Color.yellow;
+            default:
+                return Color.black;
+        }
     }
 
     public void AddItem(Item item)
     {
         items.Add(item);
+    }
+
+    private void OnButtonClick(Item item)
+    {
+        //adding item transfer between 2 invs
     }
     
 }

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Item1
   m_EditorClassIdentifier: 
   name: dssds
-  smNumber: 2
-  rarity: 0
+  quantity: 4
+  rarity: 1
   ItemSprite: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}

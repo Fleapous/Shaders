@@ -1,19 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "Item", menuName = "Items/Item")]
 public class Item : ScriptableObject
 {
     public string name;
-    public int smNumber;
+    public int quantity;
     public Rarity rarity;
     public Sprite ItemSprite;
 
-    public Item(string name_, int smNumber_, Rarity rarity_)
+    public Item(string name_, int quantity, Rarity rarity_)
     {
         name = name_;
-        smNumber = smNumber_;
+        this.quantity = quantity;
         rarity = rarity_;
     }
 }

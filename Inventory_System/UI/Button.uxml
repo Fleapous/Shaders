@@ -1,6 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:GroupBox name="GroupBox" style="align-items: flex-start; align-self: flex-start; width: 100px; height: 100px; padding-left: 0; padding-top: 0; padding-bottom: 5px;">
-        <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="Button" style="width: 100px; height: 100px;" />
-        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="align-self: center;" />
+        <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="Button" style="width: 100px; height: 100px; display: flex; flex-direction: column; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px; background-color: rgb(255, 255, 255);">
+            <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Name" style="align-self: flex-end; margin-right: 5px; justify-content: center; flex-direction: column; flex-wrap: wrap; width: 45px; height: 20%; -unity-text-align: middle-left; translate: 10px 65px;" />
+            <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Quantity" style="align-self: flex-end; margin-right: 5px; justify-content: center; flex-direction: column; flex-wrap: wrap; width: 30px; height: 20%; -unity-text-align: middle-left; translate: -47px 43px;" />
+        </ui:Button>
     </ui:GroupBox>
 </ui:UXML>
