@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HeightMapMat
-  m_Shader: {fileID: 4800000, guid: e994797ee405c45e28330cf572b7889a, type: 3}
+  m_Name: CloudMat
+  m_Shader: {fileID: 4800000, guid: c0d66a2d9cdbc46ea83f8a21785bc2a0, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -44,7 +44,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 10305, guid: 0000000000000000f000000000000000, type: 0}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -61,42 +61,23 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Animate: 1
     - _BumpScale: 1
-    - _ColorSharpness: 38.3
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightScalar: 17.59
-    - _Lacunarity: 0.53
-    - _MaxHeight: 1
     - _Metallic: 0
-    - _MinHeight: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _Octaves: 3
     - _Parallax: 0.02
-    - _Persistence: 1.7
-    - _Scale: 3481
-    - _SlopeIntensity: 0.03
-    - _SlopeOffset: 0.47
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - _lightFilterMax: 10
-    - _lightFilterMin: -94.2
     m_Colors:
-    - _CliffCol: {r: 0.8666667, g: 0.68235296, b: 0.49411765, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EdgeCol: {r: 0, g: 0.8016195, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _GroundCol: {r: 0.54901963, g: 0.7764706, b: 0.24705882, a: 1}
-    - _LightCol: {r: 1, g: 1, b: 1, a: 1}
-    - _MaxCol: {r: 0.8666667, g: 0.68235296, b: 0.49411765, a: 1}
-    - _MinCol: {r: 0.54901963, g: 0.7764706, b: 0.24705882, a: 1}
   m_BuildTextureStacks: []
