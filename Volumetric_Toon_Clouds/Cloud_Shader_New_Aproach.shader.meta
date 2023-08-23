@@ -4,6 +4,7 @@ ShaderImporter:
   externalObjects: {}
   defaultTextures:
   - _WeatherMap: {instanceID: 0}
+  - _ShapeNoise: {instanceID: 0}
   nonModifiableTextures: []
   userData: 
   assetBundleName: 
