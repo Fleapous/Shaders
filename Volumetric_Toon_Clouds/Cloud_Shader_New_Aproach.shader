@@ -7,8 +7,10 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
         _ShapeNoise("3D noise map", 3D) = "white" {}
         _GlobalCoverage("global cloud coverage", Range(0, 1)) = 0
         _GlobalDensity("global cloud density", Range(0, 1000)) = 0
-        
         _HeightPercentage("height percentage", Range(0, 1)) = 0
+        
+        _MaxDistance("maximum distance", float) = 1
+        _StepSize("StepSize", float) = 1
     }
     SubShader
     {
@@ -32,7 +34,7 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
             {
                 float2 uv : TEXCOORD0;
                 float3 uvw : TEXCOORD1;
-                float2 wPos : TEXCOORD2;
+                float3 wPos : TEXCOORD2;
                 float4 pos : SV_POSITION;
             };
 
@@ -41,6 +43,8 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
             float _GlobalCoverage;
             float _GlobalDensity;
             float _HeightPercentage;
+            float _MaxDistance;
+            float _StepSize;
 
             //converts/remaps a value from one range to another
             float ReMap(float v, float lO, float rO, float lN, float rN)
@@ -86,29 +90,48 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
 
                 return saturate(ReMap(SNSample * SA, 1 - _GlobalCoverage * WM, 1, 0, 1)) * DA;
             }
+
+            float RaymarchClouds(float3 rayOrigin, float3 rayDirection)
+            {
+                float distance = 0.0;
+                float totalDensity = 0.0;
+
+                while (distance < _MaxDistance) {
+                    float3 currentPosition = rayOrigin + distance * rayDirection;
+                    
+                    //sample WeatherMap
+                    float4 weatherMap = tex2D(_WeatherMap, frac(currentPosition).xy);
+
+                    //sample noise
+                    float4 shapeNoise = tex3D(_ShapeNoise, frac(currentPosition));
+
+                    // Calculate cloud density
+                    float cloudDensity = MakeClouds(weatherMap, shapeNoise);
+                    
+                    totalDensity += cloudDensity;
+                    distance += _StepSize;
+                }
+                return totalDensity;
+            }
+
             
             v2f vert(appdata v)
             {
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.wPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-                o.uv = v.vertex.xz;
+                o.uv = v.vertex.xy;
                 o.uvw = v.vertex.xyz;
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float2 uv = i.uv;
-                float4 weatherData = tex2D(_WeatherMap, uv);
-                float4 noise3d = tex3D(_ShapeNoise, i.uvw);
+                float3 rayDirection = normalize(i.wPos - _WorldSpaceCameraPos);
+                float density = RaymarchClouds(i.wPos, rayDirection);
+                float4 cloudCol = float4(1,1,1,density);
                 
-                float coverage = CloudCoverage(weatherData.r, weatherData.g);
-
-                // Calculate cloud color based on coverage
-                fixed4 cloudColor = float4(coverage, coverage, coverage, coverage);
-
-                return cloudColor;
+                return cloudCol;
             }
             ENDCG
         }
