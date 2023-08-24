@@ -9,8 +9,14 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
         _GlobalDensity("global cloud density", Range(0, 1000)) = 0
         _HeightPercentage("height percentage", Range(0, 1)) = 0
         
-        _MaxDistance("maximum distance", float) = 1
-        _StepSize("StepSize", float) = 1
+        _MaxDistance("maximum distance", Range(1, 180)) = 10
+        _StepSize("StepSize", Range(0.09,2)) = 1.4
+        
+        _ScaleX("scalex", Range(0, 10)) = 1
+        _ScaleY("scaley", Range(0, 10)) = 1
+        
+        _DebugNoise("displays noisemap", int) = 0
+        _DebugWeather("Dispalys weatherMap", int) = 0
     }
     SubShader
     {
@@ -28,6 +34,7 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+                float3 uvw : TEXCOORD1;
             };
 
             struct v2f
@@ -45,6 +52,10 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
             float _HeightPercentage;
             float _MaxDistance;
             float _StepSize;
+            float _ScaleX;
+            float _ScaleY;
+            int _DebugNoise;
+            int _DebugWeather;
 
             //converts/remaps a value from one range to another
             float ReMap(float v, float lO, float rO, float lN, float rN)
@@ -91,20 +102,17 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
                 return saturate(ReMap(SNSample * SA, 1 - _GlobalCoverage * WM, 1, 0, 1)) * DA;
             }
 
-            float RaymarchClouds(float3 rayOrigin, float3 rayDirection)
+            float RaymarchClouds(float3 rayOrigin, float3 rayDirection, float2 uv, float3 uvw)
             {
                 float distance = 0.0;
                 float totalDensity = 0.0;
 
                 while (distance < _MaxDistance) {
                     float3 currentPosition = rayOrigin + distance * rayDirection;
+
+                    float4 weatherMap = tex2D(_WeatherMap, (uv += currentPosition) / _ScaleX);
+                    float4 shapeNoise = tex3D(_ShapeNoise, (uvw += currentPosition) / _ScaleY);
                     
-                    //sample WeatherMap
-                    float4 weatherMap = tex2D(_WeatherMap, frac(currentPosition).xy);
-
-                    //sample noise
-                    float4 shapeNoise = tex3D(_ShapeNoise, frac(currentPosition));
-
                     // Calculate cloud density
                     float cloudDensity = MakeClouds(weatherMap, shapeNoise);
                     
@@ -120,16 +128,27 @@ Shader "Projects/Unlit/Cloud_Shader_VisualizeClouds"
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.wPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-                o.uv = v.vertex.xy;
-                o.uvw = v.vertex.xyz;
+                o.uv = v.uv;
+                o.uvw = v.uvw;
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
                 float3 rayDirection = normalize(i.wPos - _WorldSpaceCameraPos);
-                float density = RaymarchClouds(i.wPos, rayDirection);
+                float density = RaymarchClouds(i.wPos, rayDirection, i.uv, i.uvw);
                 float4 cloudCol = float4(1,1,1,density);
+
+                //debugging textures
+                float4 weathermapDebug = tex2D(_WeatherMap, i.uv / _ScaleX);
+                float4 noiseMapDebug = tex3D(_ShapeNoise, i.uvw / _ScaleY);
+
+                // return noiseMapDebug;
+                
+                if(_DebugNoise == 1)
+                    return noiseMapDebug;
+                if(_DebugWeather == 1)
+                    return float4(weathermapDebug.r, weathermapDebug.g, weathermapDebug.b,1);
                 
                 return cloudCol;
             }

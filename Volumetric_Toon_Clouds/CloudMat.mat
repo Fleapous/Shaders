@@ -74,13 +74,13 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _FadeDist: 4.43
-    - _GlobalCoverage: 1
-    - _GlobalDensity: 468
+    - _GlobalCoverage: 0.545
+    - _GlobalDensity: 28
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightPercentage: 0.241
-    - _MaxDistance: 0
+    - _HeightPercentage: 0.211
+    - _MaxDistance: 2.08
     - _MaxHeight: 10
     - _Metallic: 0
     - _MinHeight: 0
