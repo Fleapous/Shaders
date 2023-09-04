@@ -70,8 +70,8 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightScalar: 17.59
-    - _Lacunarity: 0.53
+    - _HeightScalar: 76.4
+    - _Lacunarity: 2.18
     - _MaxHeight: 1
     - _Metallic: 0
     - _MinHeight: 0
@@ -79,17 +79,17 @@ Material:
     - _OcclusionStrength: 1
     - _Octaves: 3
     - _Parallax: 0.02
-    - _Persistence: 1.7
-    - _Scale: 3481
+    - _Persistence: 0.4
+    - _Scale: 9667
     - _SlopeIntensity: 0.03
-    - _SlopeOffset: 0.47
+    - _SlopeOffset: 0.307
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - _lightFilterMax: 10
-    - _lightFilterMin: -94.2
+    - _lightFilterMax: 71.5
+    - _lightFilterMin: -177
     m_Colors:
     - _CliffCol: {r: 0.8666667, g: 0.68235296, b: 0.49411765, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
