@@ -69,8 +69,8 @@ Material:
     - _CloudDistance: 4.95
     - _CloudDistanceY: 1
     - _CloudDistanceZ: 137
-    - _CloudParticuleDistance: 3.6
-    - _CloudParticuleSize: 4.69
+    - _CloudParticuleDistance: 7.29
+    - _CloudParticuleSize: 6.63
     - _Cutoff: 0.5
     - _DebugSlider: 5.27
     - _DetailNormalMapScale: 1
@@ -78,7 +78,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _LightIntensity: 0.543
+    - _LightIntensity: 0
     - _Metallic: 0
     - _MinNoiseLim: 0.5
     - _Mode: 0

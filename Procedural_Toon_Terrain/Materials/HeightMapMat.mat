@@ -61,35 +61,35 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Animate: 1
+    - _Animate: 0
     - _BumpScale: 1
-    - _ColorSharpness: 38.3
+    - _ColorSharpness: 8.9
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightScalar: 76.4
-    - _Lacunarity: 2.18
+    - _HeightScalar: 3.3
+    - _Lacunarity: 0.27
     - _MaxHeight: 1
     - _Metallic: 0
     - _MinHeight: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _Octaves: 3
+    - _Octaves: 5
     - _Parallax: 0.02
-    - _Persistence: 0.4
-    - _Scale: 9667
+    - _Persistence: 5.26
+    - _Scale: 1018
     - _SlopeIntensity: 0.03
-    - _SlopeOffset: 0.307
+    - _SlopeOffset: 0.728
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - _lightFilterMax: 71.5
-    - _lightFilterMin: -177
+    - _lightFilterMax: 183.6
+    - _lightFilterMin: -1190.2
     m_Colors:
     - _CliffCol: {r: 0.8666667, g: 0.68235296, b: 0.49411765, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
